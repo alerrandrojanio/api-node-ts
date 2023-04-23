@@ -1,14 +1,12 @@
 import Fastify from "fastify"
 import cors from "@fastify/cors"
-import { userRoutes } from "./controllers/UserController"
-import { PostRoutes } from "./controllers/PostController"
+import { appRoutes } from "./routes/routes"
 
 const app = Fastify()
 const port = 3333
 
 app.register(cors)
-app.register(userRoutes)
-app.register(PostRoutes)
+app.register(appRoutes)
 
 app
   .listen({
