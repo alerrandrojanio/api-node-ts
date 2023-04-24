@@ -1,12 +1,13 @@
 import { FastifyInstance } from "fastify"
 
-import { createUser, getUsers } from "../controllers/UserController"
+import { createUser, getAllUsers, getUser } from "../controllers/UserController"
 import { createPost, getPosts } from "../controllers/PostController"
 
 export async function appRoutes(app: FastifyInstance) {
-  app.post("/user", createUser)
-  app.get("/user", getUsers)
+  app.post("/users", createUser)
+  app.get("/users", getAllUsers)
+  app.get("/users/:id", getUser)
 
-  app.post("/post", createPost)
-  app.get("/post", getPosts)
+  app.post("/posts", createPost)
+  app.get("/posts", getPosts)
 }
