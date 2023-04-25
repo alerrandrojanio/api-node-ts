@@ -27,7 +27,7 @@ export async function createPost(request, response) {
   })
 }
 
-export async function getPosts(request, response) {
+export async function getAllPosts(request, response) {
   const posts = await prisma.post.findMany()
 
   return response.status(200).send(posts)

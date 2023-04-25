@@ -1,8 +1,5 @@
 import { z } from "zod"
 import { prisma } from "../database"
-import { CreateUser } from "../use-cases/Users/CreateUser"
-import { GetAllUsers } from "../use-cases/Users/GetAllUsers"
-import { GetUser } from "../use-cases/Users/GetUser"
 
 export async function createUser(request, response) {
   const user = z.object({
@@ -13,24 +10,18 @@ export async function createUser(request, response) {
 
   const { name, email, birth_date } = user.parse(request.body)
 
-  const userEmail = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  })
-
-  if (email === userEmail?.email) {
+  if (await emailAlredyExists(email))
     return response.status(400).send({
       message: "User already exists",
     })
-  }
 
-  const sucess = await CreateUser(name, email, birth_date)
-
-  if (!sucess)
-    return response.status(500).send({
-      message: "Error creating user",
-    })
+  await prisma.user.create({
+    data: {
+      name,
+      email,
+      birth_date,
+    },
+  })
 
   return response.status(200).send({
     message: "User created successfully",
@@ -38,13 +29,15 @@ export async function createUser(request, response) {
 }
 
 export async function getAllUsers(request, response) {
-  const users = await GetAllUsers()
+  const users = await prisma.user.findMany()
 
   return response.status(200).send(users)
 }
 
 export async function getUser(request, response) {
-  const user = await GetUser(request.params.id)
+  const { id } = request.params
+
+  const user = await userAlredyExists(id)
 
   if (!user)
     return response.status(404).send({
@@ -52,4 +45,69 @@ export async function getUser(request, response) {
     })
 
   return response.status(200).send(user)
+}
+
+export async function updateUser(request, response) {
+  const { id } = request.params
+
+  const user = await userAlredyExists(id)
+
+  if (!user)
+    return response.status(404).send({
+      message: "User not found",
+    })
+
+  await prisma.user.update({
+    data: {
+      ...request.body,
+    },
+    where: {
+      id,
+    },
+  })
+
+  return response.status(200).send({
+    message: "User updated successfully",
+  })
+}
+
+export async function deleteUser(request, response) {
+  const { id } = request.params
+
+  const user = await userAlredyExists(id)
+
+  if (!user)
+    return response.status(404).send({
+      message: "User not found",
+    })
+
+  await prisma.user.delete({
+    where: {
+      id,
+    },
+  })
+
+  return response.status(200).send({
+    message: "User deleted successfully",
+  })
+}
+
+async function emailAlredyExists(email: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  })
+
+  return user
+}
+
+async function userAlredyExists(id: string) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  })
+
+  return user
 }
